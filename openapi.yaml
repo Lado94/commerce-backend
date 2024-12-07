@@ -1,0 +1,182 @@
+openapi: 3.0.0
+info:
+  title: E-commerce API
+  description: API for managing products, orders, and users in an e-commerce system.
+  version: 1.0.0
+
+servers:
+  - url: http://127.0.0.1:5000
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: testuser
+                email:
+                  type: string
+                  format: email
+                  example: testuser@example.com
+                password:
+                  type: string
+                  format: password
+                  example: securepassword
+              required:
+                - username
+                - email
+                - password
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User registered successfully"
+        '400':
+          description: Bad request (e.g., email already exists or missing fields)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /auth/login:
+    post:
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: testuser@example.com
+                password:
+                  type: string
+                  format: password
+                  example: securepassword
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Successfully authenticated, returns JWT access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /auth/protected:
+    get:
+      summary: Protected route example
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Access granted with a valid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          description: Missing or invalid token
+
+  /products:
+    get:
+      summary: Get a list of products
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+          description: Filter by product name
+        - in: query
+          name: min_price
+          schema:
+            type: number
+          description: Minimum price
+        - in: query
+          name: max_price
+          schema:
+            type: number
+          description: Maximum price
+        - in: query
+          name: sort_by
+          schema:
+            type: string
+            enum: [id, name, price]
+          description: Field to sort by
+        - in: query
+          name: sort_order
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Sort order
+      responses:
+        '200':
+          description: A list of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+
+    post:
+      summary: Create a new product
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreate'
+      responses:
+        '201':
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Invalid data
+
+  /products/{id}:
+    get:
+      summary: Get a product by ID
+      parameters:
+        - in: path
+          name: id
