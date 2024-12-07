@@ -1,6 +1,5 @@
 from app.db import db
 
-# Связующая таблица для "Многие ко многим" между Order и Product
 order_product = db.Table(
     'order_product',
     db.Column('order_id', db.Integer, db.ForeignKey('order.id'), primary_key=True),
@@ -9,11 +8,9 @@ order_product = db.Table(
 
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Ссылка на пользователя
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     total_price = db.Column(db.Float, nullable=False, default=0.0)
-    status = db.Column(db.String(50), default='pending')  # Статус заказа
-
-    # Связь: Многие ко многим с продуктами
+    status = db.Column(db.String(50), default='pending')
     products = db.relationship('Product', secondary=order_product, lazy='subquery',
                                backref=db.backref('orders', lazy=True))
 
